@@ -95,6 +95,7 @@ const SettingsModal = memo(({
                     )}
                 </div>
 
+
                 <div className="settings-section">
                     <h3 className="subsection-title">Manage Available Years</h3>
                     {yearManagementError && <div className="error-message">{yearManagementError}</div>}
@@ -209,7 +210,7 @@ function App() {
     const [db, setDb] = useState(null);
     const [user, setUser] = useState(null); 
     const [isAuthReady, setIsAuthReady] = useState(false);
-    const [appId, setAppId] = useState('default-app-id');
+    const [appId, setAppId] = useState('default-app-id'); // Will be updated by useEffect
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [displayName, setDisplayName] = useState(''); 
@@ -253,27 +254,53 @@ function App() {
 
     // --- Firebase Initialization and Auth State Listener ---
     useEffect(() => {
-        const localFirebaseConfig =  {
-            apiKey: "AIzaSyCOwAswbK4PGB2PRpwHpTp8tKyQ1qur1GY",
-            authDomain: "sheets-b1ca2.firebaseapp.com",
-            projectId: "sheets-b1ca2",
-            storageBucket: "sheets-b1ca2.appspot.com", 
-            messagingSenderId: "880298311752",
-            appId: "1:880298311752:web:549f6cdd3e248e5563187d",
-            measurementId: "G-RSRWK1MB2B"
-        }; 
-        const localAppId = "task-manager-app-css"; 
+        // Construct Firebase config from environment variables
+        const firebaseConfigFromEnv = {
+            apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+            authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+            projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+            storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+            messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+            appId: process.env.REACT_APP_FIREBASE_APP_ID, // Firebase's own App ID for the web app
+            measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID 
+        };
+
+        let effectiveAppIdToSet;
         // eslint-disable-next-line no-undef
-        if (typeof __app_id !== 'undefined') {  setAppId(__app_id); } else { setAppId(localAppId); } 
-        try {
+        if (typeof __app_id !== 'undefined') {
             // eslint-disable-next-line no-undef
-            const firebaseConfigToUse = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : localFirebaseConfig;  
-            if (!Object.keys(firebaseConfigToUse).length || !firebaseConfigToUse.apiKey) {
-                setGeneralError("Firebase configuration is missing or invalid..."); setIsAuthReady(true); return;
+            effectiveAppIdToSet = __app_id; // Use global if available
+        } else if (process.env.REACT_APP_CUSTOM_APP_ID) {
+            effectiveAppIdToSet = process.env.REACT_APP_CUSTOM_APP_ID;
+        } else {
+            effectiveAppIdToSet = 'task-manager-default'; // Fallback if neither is set
+        }
+        setAppId(effectiveAppIdToSet);
+
+        try {
+            let firebaseConfigToUse;
+            // eslint-disable-next-line no-undef
+            if (typeof __firebase_config !== 'undefined') {
+                // eslint-disable-next-line no-undef
+                firebaseConfigToUse = JSON.parse(__firebase_config); // Use global if available
+            } else {
+                firebaseConfigToUse = firebaseConfigFromEnv; // Fallback to environment variables
             }
+
+            if (!firebaseConfigToUse || !firebaseConfigToUse.apiKey) {
+                setGeneralError("Firebase configuration is missing or invalid. Please check your .env file locally or environment variables in your hosting provider (e.g., Netlify). Ensure all REACT_APP_FIREBASE_... variables are set.");
+                console.error("Firebase configuration is missing. Ensure .env file is set up locally with REACT_APP_... variables or environment variables are set in Netlify.");
+                setIsAuthReady(true);
+                return;
+            }
+
             const appInstance = initializeApp(firebaseConfigToUse); 
-            const firestoreDb = getFirestore(appInstance); const firestoreAuth = getAuth(appInstance);
-            setDb(firestoreDb); setAuth(firestoreAuth); setLogLevel('debug');
+            const firestoreDb = getFirestore(appInstance); 
+            const firestoreAuth = getAuth(appInstance);
+            setDb(firestoreDb); 
+            setAuth(firestoreAuth); 
+            setLogLevel('debug');
+
             const unsubscribeAuth = onAuthStateChanged(firestoreAuth, (currentUser) => {
                 setUser(currentUser); setIsAuthReady(true);
                 if (currentUser) {
@@ -289,8 +316,12 @@ function App() {
                 }
             });
             return () => unsubscribeAuth();
-        } catch (e) { console.error("Error initializing Firebase:", e); setGeneralError(`Firebase initialization error: ${e.message}.`); setIsAuthReady(true); }
-    }, []);
+        } catch (e) { 
+            console.error("Error initializing Firebase:", e); 
+            setGeneralError(`Firebase initialization error: ${e.message}. Check console and Firebase configuration.`); 
+            setIsAuthReady(true); 
+        }
+    }, []); 
 
     // Determine effective UID for task fetching based on viewMode
     useEffect(() => {
