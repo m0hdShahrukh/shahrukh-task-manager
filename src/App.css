@@ -98,6 +98,29 @@ body {
   padding: 1rem;
 }
 
+/* Sticky Help Button */
+.sticky-help-button {
+  position: fixed;
+  bottom: 1.5rem;
+  /* 24px */
+  left: 1.5rem;
+  /* 24px */
+  z-index: 900;
+  /* Below modals (usually 1000+) but above most content */
+  display: flex;
+  align-items: center;
+  /* Uses .button and .button-secondary for base styling */
+  padding: 0.6rem 1rem;
+  /* Slightly adjusted padding */
+}
+
+.sticky-help-button .icon {
+  /* SVG icon inside help button */
+  width: 1.2em;
+  height: 1.2em;
+  margin-right: 0.4em;
+}
+
 .loading-text {
   font-size: 1.25rem;
   font-weight: 600;
@@ -671,10 +694,12 @@ body {
   padding-right: 1.5rem;
   min-width: 120px;
 }
+
 .nickname-form button {
-    min-width: 130px;
-    padding: 1rem;
+  min-width: 130px;
+  padding: 1rem;
 }
+
 /* Task List */
 .task-list {
   list-style: none;

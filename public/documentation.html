@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager App - User Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+        }
+
+        .content-section h2 {
+            font-size: 1.75rem;
+            /* text-2xl */
+            font-weight: 600;
+            /* font-semibold */
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            /* gray-200 */
+            color: #1e3a8a;
+            /* Tailwind blue-800 */
+        }
+
+        .content-section h3 {
+            font-size: 1.25rem;
+            /* text-xl */
+            font-weight: 600;
+            /* font-semibold */
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #1d4ed8;
+            /* Tailwind blue-700 */
+        }
+
+        .content-section p,
+        .content-section li {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+            color: #374151;
+            /* gray-700 */
+        }
+
+        .content-section ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ol {
+            list-style-type: decimal;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section strong {
+            font-weight: 600;
+            color: #111827;
+            /* gray-900 */
+        }
+
+        .content-section em,
+        .content-section i {
+            /* For italicized notes */
+            color: #4b5563;
+            /* gray-600 */
+            font-style: italic;
+        }
+
+        .note {
+            background-color: #eff6ff;
+            /* blue-50 */
+            border-left: 4px solid #3b82f6;
+            /* blue-500 */
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl font-bold text-white">Task Manager App - User Guide</h1>
+            <p class="text-lg text-white mt-2">Your comprehensive guide to using the Task Manager.</p>
+        </header>
+
+        <main>
+            <section class="content-section bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2>1. What is this App?</h2>
+                <p>This app helps you manage your tasks by organizing them under a specific Year, Month, and Date. You
+                    can also customize your experience with themes, nicknames, and even view tasks of a designated
+                    "companion."</p>
+            </section>
+
+            <section class="content-section bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2>2. Getting Started</h2>
+                <h3>Registration:</h3>
+                <ul>
+                    <li>If you're a new user, click on "Need an account? Register."</li>
+                    <li>Fill in your <strong>Display Name</strong> (this is how your name might appear to others if
+                        future sharing features are used), <strong>Email Address</strong>, and a
+                        <strong>Password</strong>.</li>
+                    <li>Click "Register."</li>
+                </ul>
+                <h3>Login:</h3>
+                <ul>
+                    <li>If you already have an account, enter your Email and Password.</li>
+                    <li>Click "Login."</li>
+                </ul>
+            </section>
+
+            <section class="content-section bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2>3. Main App Overview</h2>
+                <p>Once logged in, you'll see two main areas:</p>
+                <h3>Left Sidebar:</h3>
+                <ul>
+                    <li><strong>App Nickname:</strong> Shows the current name of your app instance (you can change this
+                        in Settings).</li>
+                    <li><strong>View Mode Toggle:</strong> A button to switch between "View My Tasks" and "View
+                        Companion's Tasks." This button is enabled if you have added companions.</li>
+                    <li><strong>Companion Selection (if applicable):</strong> If you're in "Companion's Tasks" mode and
+                        have companions added, a list of your companions' nicknames will appear here. Click one to view
+                        their tasks.</li>
+                    <li><strong>Recent Tasks:</strong> A list of the 5 most recently created tasks (either yours or your
+                        selected companion's). Clicking a task navigates the main view to that task's date.</li>
+                </ul>
+                <h3>Main Content Area:</h3>
+                <ul>
+                    <li><strong>Header:</strong>
+                        <ul>
+                            <li>Shows the current App Nickname or the name of the companion whose tasks you are viewing.
+                            </li>
+                            <li>Displays your login status (Display Name or Email) and your unique User ID.</li>
+                            <li>"Created by MOHD SHAHRUKH" text.</li>
+                            <li><strong>Options Button (Gear Icon):</strong> Opens the "App Settings" modal.</li>
+                            <li><strong>Logout Button:</strong> Signs you out of the application.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Select Date Card:</strong> This is where you pick the Year, Month, and Day for which you
+                        want to view or add tasks.</li>
+                    <li><strong>Tasks Section:</strong> Appears once a full date is selected, showing tasks for that day
+                        and allowing you to add new ones.</li>
+                </ul>
+            </section>
+
+            <section class="content-section bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2>4. Core Features</h2>
+                <h3>A. Selecting a Date:</h3>
+                <ol>
+                    <li>In the "Select Date" card, first choose a <strong>Year</strong> from the dropdown. (You can
+                        manage which years appear in this list via the "App Settings" modal).</li>
+                    <li>Then, select a <strong>Month</strong>.</li>
+                    <li>Finally, pick a <strong>Day</strong>.</li>
+                </ol>
+                <p>Once a full date (Year, Month, Day) is selected, the "Tasks Section" for that date will appear below.
+                </p>
+
+                <h3>B. Adding a Task:</h3>
+                <ol>
+                    <li>Select a specific date.</li>
+                    <li>In the "Tasks for [Date]" section, type your task description into the input field ("Enter new
+                        task...").</li>
+                    <li>Click the "Add Task" button.</li>
+                </ol>
+                <p class="note"><em>Note: You cannot add tasks when viewing a companion's tasks.</em></p>
+
+                <h3>C. Managing Tasks:</h3>
+                <ul>
+                    <li><strong>Mark Complete/Incomplete:</strong> Click the checkbox next to a task to toggle its
+                        completion status. <em>(Disabled when viewing a companion's tasks).</em></li>
+                    <li><strong>Delete Task:</strong> Click the trash can icon on the right side of a task to delete it.
+                        A confirmation pop-up will appear. <em>(Disabled when viewing a companion's tasks).</em></li>
+                </ul>
+            </section>
+
+            <section class="content-section bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2>5. App Settings (Gear Icon - "Options")</h2>
+                <p>Click the "Options" button (with a gear icon) in the header to open the "App Settings" modal.</p>
+                <h3>A. My Account:</h3>
+                <ul>
+                    <li><strong>Your User ID:</strong> Displays your unique User ID. You'll need to share this ID with
+                        anyone who wants to add you as their companion, or if you want someone to add you.</li>
+                </ul>
+                <h3>B. Manage Available Years:</h3>
+                <ul>
+                    <li><strong>Add Year:</strong> Enter a year (e.g., 2026) into the input field and click "Add Year."
+                        This year will now be available in the "Select Date" year dropdown.</li>
+                    <li><strong>View/Delete Years:</strong> Your currently available years are shown as tags. Click the
+                        "X" icon next to a year tag to delete it (you'll be asked to confirm). You cannot delete the
+                        last remaining year.</li>
+                </ul>
+                <h3>C. App Theme:</h3>
+                <ul>
+                    <li>Click the "Switch to Light/Dark Mode" button to toggle the app's appearance between a dark theme
+                        and a light theme. Your preference is saved and will be applied the next time you log in.</li>
+                </ul>
+                <h3>D. App Nickname:</h3>
+                <ul>
+                    <li>Displays your current app nickname (default is "Task Manager Deluxe").</li>
+                    <li>To change it, type a new nickname in the input field and click "Save Nickname." This name will
+                        appear in the header and sidebar title.</li>
+                </ul>
+                <h3>E. Companion Settings:</h3>
+                <ul>
+                    <li><strong>What is a Companion?</strong> A companion is another user of this app whose tasks you
+                        might want to view (read-only). To do this, you need their User ID and you can assign them a
+                        nickname for your reference.</li>
+                    <li><strong>Adding a Companion:</strong>
+                        <ol>
+                            <li>Enter the <strong>Companion's User ID</strong> in the first input field.</li>
+                            <li>Enter a <strong>Nickname</strong> for this companion in the second input field (this is
+                                how they'll appear in your lists).</li>
+                            <li>Click "Add Companion."</li>
+                        </ol>
+                    </li>
+                    <li><strong>Current Companions:</strong> If you've added companions, they'll be listed here by the
+                        nickname you gave them (with a part of their UID for reference).</li>
+                    <li><strong>Removing a Companion:</strong> Click the "X" icon next to a companion in the list to
+                        remove them.</li>
+                </ul>
+            </section>
+
+            <section class="content-section bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2>6. Viewing Companion's Tasks</h2>
+                <ol>
+                    <li>First, make sure you've added a companion in the "Settings Panel" (see 5E above). You'll need
+                        their User ID.</li>
+                    <li>In the <strong>Left Sidebar</strong>, click the "<strong>View Companion's Tasks</strong>"
+                        button. (This button is disabled if you have no companions added).</li>
+                    <li>A list of your companions' nicknames will appear in the sidebar. Click the nickname of the
+                        companion whose tasks you want to view.</li>
+                    <li>The main area (header title, recent tasks, and main task view) will now show tasks for the
+                        selected companion for any date you pick.</li>
+                    <li><strong>Important:</strong> This is a <strong>read-only</strong> view. You cannot add, edit, or
+                        delete your companion's tasks. The input fields and action buttons will be disabled.</li>
+                    <li>To go back to your own tasks, click the "<strong>View My Tasks</strong>" button in the sidebar.
+                    </li>
+                </ol>
+                <p class="note"><em>Note: For you to successfully view a companion's tasks, the app's Firestore security
+                        rules must be correctly configured on the backend to allow this. If you see permission errors,
+                        this is likely the cause.</em></p>
+            </section>
+
+            <section class="content-section bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2>7. Logging Out</h2>
+                <p>Click the "Logout" button in the header to sign out of the application.</p>
+            </section>
+
+            <section class="content-section bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2>8. Troubleshooting</h2>
+                <ul>
+                    <li><strong>Error: "Firebase configuration is missing or invalid..." (when running
+                            locally):</strong>
+                        <ul>
+                            <li>Make sure you have a <code>.env</code> file in the root of your project (not inside
+                                <code>src/</code>).</li>
+                            <li>Ensure your Firebase API keys in the <code>.env</code> file start with
+                                <code>REACT_APP_</code> (e.g., <code>REACT_APP_FIREBASE_API_KEY=...</code>).</li>
+                            <li>After creating or modifying the <code>.env</code> file, you <strong>must restart your
+                                    local development server</strong> (<code>npm start</code> or
+                                <code>yarn start</code>).</li>
+                        </ul>
+                    </li>
+                    <li><strong>Error: "Failed to fetch tasks for companion: Missing or insufficient permissions." (on
+                            live or local):</strong>
+                        <ul>
+                            <li>This is almost always a Firestore Security Rule issue. The rules in your Firebase
+                                project need to be configured to allow you to read your companion's tasks. Refer to the
+                                setup guide or contact the administrator if this is a shared project. The rule needs to
+                                check if the task owner's UID is in your list of companion UIDs.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Nickname input loses focus while typing:</strong>
+                        <ul>
+                            <li>This might happen if the app is re-rendering frequently. The app tries to prevent this,
+                                but if it persists, try typing your full nickname and then saving.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Companions list not updating immediately after adding/removing:</strong>
+                        <ul>
+                            <li>The app uses real-time listeners, so this should update quickly. If it doesn't, a page
+                                refresh might be needed, or there could be a temporary connection issue to the database.
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>ESLint warnings in the terminal (for developers):</strong>
+                        <ul>
+                            <li>If you see warnings about <code>__app_id</code> or <code>__firebase_config</code> being
+                                undefined during local development, these are usually safe to ignore as the app has
+                                fallbacks. The code includes comments to try and suppress these for local ESLint setups.
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>General Issues:</strong>
+                        <ul>
+                            <li>Try refreshing the page.</li>
+                            <li>Ensure you have a stable internet connection.</li>
+                            <li>Check your browser's developer console (usually F12) for more specific error messages if
+                                something isn't working as expected.</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h1><strong>Enjoy managing your tasks!</strong></h1>
+            </section>
+        </main>
+
+        <footer class="mt-12 py-8 text-center text-gray-500 border-t border-gray-200">
+            <p>Created by MOHD SHAHRUKH</p>
+            <p>&copy; <span id="currentYear"></span> Task Manager Deluxe. All rights reserved.</p>
+        </footer>
+    </div>
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+</body>
+
+</html>

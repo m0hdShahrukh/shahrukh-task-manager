@@ -1,36 +1,36 @@
 import React, { useState, useEffect, memo } from 'react';
 import { initializeApp } from 'firebase/app';
-import { 
-    getAuth, 
+import {
+    getAuth,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-    updateProfile 
+    updateProfile
 } from 'firebase/auth';
-import { 
-    getFirestore, 
-    doc, 
-    setDoc, 
-    deleteDoc, 
-    collection, 
-    query, 
-    where, 
+import {
+    getFirestore,
+    doc,
+    setDoc,
+    deleteDoc,
+    collection,
+    query,
+    where,
     onSnapshot,
-    serverTimestamp, 
+    serverTimestamp,
     setLogLevel,
-    arrayUnion, 
+    arrayUnion,
     arrayRemove,
-    orderBy, 
-    limit     
+    orderBy,
+    limit
 } from 'firebase/firestore';
 
 // --- Import the CSS file ---
-import './App.css'; 
+import './App.css';
 
 // --- Constants ---
 const MONTHS = [
-    "January", "February", "March", "April", "May", "June", 
+    "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
 ];
 const CURRENT_YEAR = new Date().getFullYear();
@@ -41,16 +41,18 @@ const getDaysInMonth = (year, monthIndex) => {
     const numDays = new Date(year, monthIndex + 1, 0).getDate();
     return Array.from({ length: numDays }, (_, i) => i + 1);
 };
-
+const openDocumentation = () => {
+    window.open('documentation.html', '_blank', 'noopener,noreferrer');
+};
 // --- Settings Modal Component (Memoized) ---
-const SettingsModal = memo(({ 
-    isOpen, 
+const SettingsModal = memo(({
+    isOpen,
     onClose,
     appTheme,
     onToggleTheme,
-    currentAppNickname, 
-    newNicknameInput, 
-    onNewNicknameInputChange, 
+    currentAppNickname,
+    newNicknameInput,
+    onNewNicknameInputChange,
     onSaveNickname,
     manageableYears,
     isLoadingYears,
@@ -59,12 +61,12 @@ const SettingsModal = memo(({
     onNewYearToAddChange,
     onAddYear,
     onDeleteYear,
-    companions, 
-    newCompanionUidInput, 
-    onNewCompanionUidInputChange, 
-    newCompanionNicknameInput, 
-    onNewCompanionNicknameInputChange, 
-    onAddCompanion, 
+    companions,
+    newCompanionUidInput,
+    onNewCompanionUidInputChange,
+    newCompanionNicknameInput,
+    onNewCompanionNicknameInputChange,
+    onAddCompanion,
     onRemoveCompanion,
     settingsMessage,
     currentUserUid
@@ -82,7 +84,7 @@ const SettingsModal = memo(({
                         </svg>
                     </button>
                 </div>
-                
+
                 {settingsMessage && <div className={`info-message ${settingsMessage.startsWith("Failed") || settingsMessage.startsWith("Cannot") ? 'error-message' : ''}`}>{settingsMessage}</div>}
 
                 <div className="settings-section">
@@ -100,11 +102,11 @@ const SettingsModal = memo(({
                     <h3 className="subsection-title">Manage Available Years</h3>
                     {yearManagementError && <div className="error-message">{yearManagementError}</div>}
                     <div className="add-year-form">
-                        <input 
-                            type="number" 
-                            value={newYearToAdd} 
-                            onChange={(e) => onNewYearToAddChange(e.target.value)} 
-                            placeholder="Enter year (e.g., 2026)" 
+                        <input
+                            type="number"
+                            value={newYearToAdd}
+                            onChange={(e) => onNewYearToAddChange(e.target.value)}
+                            placeholder="Enter year (e.g., 2026)"
                             className="form-group-input"
                         />
                         <button onClick={onAddYear} className="button button-primary add-year-button">Add Year</button>
@@ -116,13 +118,13 @@ const SettingsModal = memo(({
                                 {manageableYears.map(year => (
                                     <li key={year} className="year-tag">
                                         <span>{year}</span>
-                                        <button 
-                                            onClick={() => onDeleteYear(year)} 
-                                            className="button-icon delete-year-button" 
+                                        <button
+                                            onClick={() => onDeleteYear(year)}
+                                            className="button-icon delete-year-button"
                                             title={`Delete year ${year}`}
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="icon" viewBox="0 0 20 20" fill="currentColor">
-                                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                                             </svg>
                                         </button>
                                     </li>
@@ -130,7 +132,7 @@ const SettingsModal = memo(({
                             </ul>
                         </div>
                     )}
-                     {!isLoadingYears && manageableYears.length === 0 && (
+                    {!isLoadingYears && manageableYears.length === 0 && (
                         <p className="info-message">No years available. Add a year to start.</p>
                     )}
                 </div>
@@ -145,33 +147,33 @@ const SettingsModal = memo(({
                 <div className="settings-section">
                     <h3 className="subsection-title">App Nickname (Current: {currentAppNickname})</h3>
                     <div className="nickname-form">
-                        <input 
-                            id="nickname-input-field" 
-                            type="text" 
+                        <input
+                            id="nickname-input-field"
+                            type="text"
                             value={newNicknameInput}
                             onChange={(e) => onNewNicknameInputChange(e.target.value)}
-                            placeholder="Enter app nickname" 
+                            placeholder="Enter app nickname"
                             className="form-group-input"
                         />
                         <button onClick={onSaveNickname} className="button button-primary">Save Nickname</button>
                     </div>
                 </div>
-                
+
                 <div className="settings-section">
                     <h3 className="subsection-title">Companion Settings</h3>
-                    <div className="companion-form add-companion-form"> 
-                         <input 
-                            type="text" 
+                    <div className="companion-form add-companion-form">
+                        <input
+                            type="text"
                             value={newCompanionUidInput}
                             onChange={(e) => onNewCompanionUidInputChange(e.target.value)}
-                            placeholder="Companion's User ID" 
+                            placeholder="Companion's User ID"
                             className="form-group-input companion-uid-input"
                         />
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             value={newCompanionNicknameInput}
                             onChange={(e) => onNewCompanionNicknameInputChange(e.target.value)}
-                            placeholder="Companion's Nickname" 
+                            placeholder="Companion's Nickname"
                             className="form-group-input companion-nickname-input"
                         />
                         <button onClick={onAddCompanion} className="button button-primary">Add Companion</button>
@@ -180,12 +182,12 @@ const SettingsModal = memo(({
                         <div className="manageable-companions-display">
                             <h4>Current Companions:</h4>
                             <ul className="companion-tags-list">
-                                {companions.map(comp => ( 
+                                {companions.map(comp => (
                                     <li key={comp.uid} className="companion-tag">
-                                        <span>{comp.nickname} ({comp.uid.substring(0, 6)}...)</span> 
+                                        <span>{comp.nickname} ({comp.uid.substring(0, 6)}...)</span>
                                         <button onClick={() => onRemoveCompanion(comp.uid)} className="button-icon delete-companion-button" title={`Remove ${comp.nickname}`}>
                                             <svg xmlns="http://www.w3.org/2000/svg" className="icon" viewBox="0 0 20 20" fill="currentColor">
-                                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                                             </svg>
                                         </button>
                                     </li>
@@ -208,16 +210,16 @@ const SettingsModal = memo(({
 function App() {
     const [auth, setAuth] = useState(null);
     const [db, setDb] = useState(null);
-    const [user, setUser] = useState(null); 
+    const [user, setUser] = useState(null);
     const [isAuthReady, setIsAuthReady] = useState(false);
     const [appId, setAppId] = useState('default-app-id'); // Will be updated by useEffect
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [displayName, setDisplayName] = useState(''); 
+    const [displayName, setDisplayName] = useState('');
     const [isLoginView, setIsLoginView] = useState(true);
     const [authError, setAuthError] = useState('');
     const [selectedYear, setSelectedYear] = useState(null);
-    const [selectedMonth, setSelectedMonth] = useState(null); 
+    const [selectedMonth, setSelectedMonth] = useState(null);
     const [daysInSelectedMonth, setDaysInSelectedMonth] = useState([]);
     const [selectedDay, setSelectedDay] = useState(null);
     const [tasks, setTasks] = useState([]);
@@ -232,18 +234,18 @@ function App() {
     const [isLoadingRecentTasks, setIsLoadingRecentTasks] = useState(true);
     const [recentTasksError, setRecentTasksError] = useState('');
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-    const [appTheme, setAppTheme] = useState('dark'); 
-    const [appNickname, setAppNickname] = useState('Task Manager Deluxe'); 
+    const [appTheme, setAppTheme] = useState('dark');
+    const [appNickname, setAppNickname] = useState('Task Manager Deluxe');
     const [newNicknameInput, setNewNicknameInput] = useState('');
-    
-    const [companions, setCompanions] = useState([]); 
+
+    const [companions, setCompanions] = useState([]);
     const [newCompanionUidInput, setNewCompanionUidInput] = useState('');
-    const [newCompanionNicknameInput, setNewCompanionNicknameInput] = useState(''); 
-    const [selectedCompanionForViewing, setSelectedCompanionForViewing] = useState(null); 
+    const [newCompanionNicknameInput, setNewCompanionNicknameInput] = useState('');
+    const [selectedCompanionForViewing, setSelectedCompanionForViewing] = useState(null);
 
     const [settingsMessage, setSettingsMessage] = useState('');
-    const [viewMode, setViewMode] = useState('myTasks'); 
-    const [effectiveUidForTasks, setEffectiveUidForTasks] = useState(null); 
+    const [viewMode, setViewMode] = useState('myTasks');
+    const [effectiveUidForTasks, setEffectiveUidForTasks] = useState(null);
 
 
     // --- Apply Theme ---
@@ -262,7 +264,7 @@ function App() {
             storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
             messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
             appId: process.env.REACT_APP_FIREBASE_APP_ID, // Firebase's own App ID for the web app
-            measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID 
+            measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
         };
 
         let effectiveAppIdToSet;
@@ -294,11 +296,11 @@ function App() {
                 return;
             }
 
-            const appInstance = initializeApp(firebaseConfigToUse); 
-            const firestoreDb = getFirestore(appInstance); 
+            const appInstance = initializeApp(firebaseConfigToUse);
+            const firestoreDb = getFirestore(appInstance);
             const firestoreAuth = getAuth(appInstance);
-            setDb(firestoreDb); 
-            setAuth(firestoreAuth); 
+            setDb(firestoreDb);
+            setAuth(firestoreAuth);
             setLogLevel('debug');
 
             const unsubscribeAuth = onAuthStateChanged(firestoreAuth, (currentUser) => {
@@ -306,32 +308,32 @@ function App() {
                 if (currentUser) {
                     setAuthError(''); setEmail(''); setPassword(''); setDisplayName('');
                     setSelectedYear(null); setSelectedMonth(null); setSelectedDay(null);
-                    setEffectiveUidForTasks(currentUser.uid); 
-                    setViewMode('myTasks'); 
-                    setSelectedCompanionForViewing(null); 
+                    setEffectiveUidForTasks(currentUser.uid);
+                    setViewMode('myTasks');
+                    setSelectedCompanionForViewing(null);
                 } else {
-                    setManageableYears([]); setRecentTasks([]); setAppTheme('dark'); 
+                    setManageableYears([]); setRecentTasks([]); setAppTheme('dark');
                     setAppNickname('Task Manager Deluxe'); setCompanions([]);
                     setEffectiveUidForTasks(null); setSelectedCompanionForViewing(null);
                 }
             });
             return () => unsubscribeAuth();
-        } catch (e) { 
-            console.error("Error initializing Firebase:", e); 
-            setGeneralError(`Firebase initialization error: ${e.message}. Check console and Firebase configuration.`); 
-            setIsAuthReady(true); 
+        } catch (e) {
+            console.error("Error initializing Firebase:", e);
+            setGeneralError(`Firebase initialization error: ${e.message}. Check console and Firebase configuration.`);
+            setIsAuthReady(true);
         }
-    }, []); 
+    }, []);
 
     // Determine effective UID for task fetching based on viewMode
     useEffect(() => {
         if (viewMode === 'myTasks' && user) {
             setEffectiveUidForTasks(user.uid);
         } else if (viewMode === 'companionTasks' && selectedCompanionForViewing) {
-            setEffectiveUidForTasks(selectedCompanionForViewing.uid); 
-        } else if (user) { 
+            setEffectiveUidForTasks(selectedCompanionForViewing.uid);
+        } else if (user) {
             setEffectiveUidForTasks(user.uid);
-            if (viewMode === 'companionTasks') setViewMode('myTasks'); 
+            if (viewMode === 'companionTasks') setViewMode('myTasks');
         } else {
             setEffectiveUidForTasks(null);
         }
@@ -358,10 +360,10 @@ function App() {
                 const nickname = prefs.nickname || 'Task Manager Deluxe';
                 setAppNickname(nickname);
                 const nicknameInputField = document.getElementById('nickname-input-field');
-                if (document.activeElement !== nicknameInputField || newNicknameInput === '') { 
+                if (document.activeElement !== nicknameInputField || newNicknameInput === '') {
                     setNewNicknameInput(nickname);
                 }
-                setCompanions(prefs.companions ? [...prefs.companions] : []); 
+                setCompanions(prefs.companions ? [...prefs.companions] : []);
             } else {
                 const defaultPrefs = { theme: 'dark', nickname: 'Task Manager Deluxe', companions: [] };
                 try {
@@ -384,16 +386,16 @@ function App() {
             setCompanions([]);
         });
 
-        return () => unsubscribePrefs(); 
+        return () => unsubscribePrefs();
 
-    }, [db, user, appId, newNicknameInput]); 
+    }, [db, user, appId, newNicknameInput]);
 
 
     // --- Fetch/Manage User-Specific Years ---
     useEffect(() => {
         if (!db || !user || !appId) {
             setIsLoadingYears(false);
-            if(user) setManageableYears([CURRENT_YEAR, CURRENT_YEAR + 1, CURRENT_YEAR + 2].sort((a, b) => a - b));
+            if (user) setManageableYears([CURRENT_YEAR, CURRENT_YEAR + 1, CURRENT_YEAR + 2].sort((a, b) => a - b));
             else setManageableYears([]);
             return;
         }
@@ -403,20 +405,20 @@ function App() {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 if (data && Array.isArray(data.list)) { setManageableYears([...data.list].sort((a, b) => a - b)); }
-                else { 
+                else {
                     const defaultYears = [CURRENT_YEAR, CURRENT_YEAR + 1, CURRENT_YEAR + 2].sort((a, b) => a - b);
-                    try { await setDoc(yearsDocRef, { list: defaultYears }); } 
+                    try { await setDoc(yearsDocRef, { list: defaultYears }); }
                     catch (error) { setManageableYears(defaultYears); console.error("Error resetting malformed years:", error); }
                 }
-            } else { 
+            } else {
                 const defaultYears = [CURRENT_YEAR, CURRENT_YEAR + 1, CURRENT_YEAR + 2].sort((a, b) => a - b);
-                try { await setDoc(yearsDocRef, { list: defaultYears }); } 
+                try { await setDoc(yearsDocRef, { list: defaultYears }); }
                 catch (error) { setManageableYears(defaultYears); console.error("Error creating default years:", error); }
             }
             setIsLoadingYears(false);
         }, (error) => {
             setYearManagementError(`Failed to fetch years: ${error.message}`);
-            setManageableYears([CURRENT_YEAR, CURRENT_YEAR + 1, CURRENT_YEAR + 2].sort((a,b)=>a-b));
+            setManageableYears([CURRENT_YEAR, CURRENT_YEAR + 1, CURRENT_YEAR + 2].sort((a, b) => a - b));
             setIsLoadingYears(false);
         });
         return () => unsubscribeYears();
@@ -424,16 +426,16 @@ function App() {
 
     // --- Fetch Recent Tasks (adapts to effectiveUidForTasks) ---
     useEffect(() => {
-        if (!db || !effectiveUidForTasks || !appId) { 
+        if (!db || !effectiveUidForTasks || !appId) {
             setRecentTasks([]);
             setIsLoadingRecentTasks(false);
             return;
         }
         setIsLoadingRecentTasks(true); setRecentTasksError('');
         const recentTasksQuery = query(
-            collection(db, `artifacts/${appId}/users/${effectiveUidForTasks}/tasks`), 
+            collection(db, `artifacts/${appId}/users/${effectiveUidForTasks}/tasks`),
             orderBy("createdAt", "desc"),
-            limit(5) 
+            limit(5)
         );
         const unsubscribeRecent = onSnapshot(recentTasksQuery, (querySnapshot) => {
             const fetchedRecentTasks = [];
@@ -446,7 +448,7 @@ function App() {
             setIsLoadingRecentTasks(false);
         });
         return () => unsubscribeRecent();
-    }, [db, effectiveUidForTasks, appId, viewMode]); 
+    }, [db, effectiveUidForTasks, appId, viewMode]);
 
 
     // --- Update Days when Year/Month Changes ---
@@ -461,45 +463,45 @@ function App() {
 
     // --- Fetch Date-Specific Tasks (adapts to effectiveUidForTasks) ---
     useEffect(() => {
-        if (!isAuthReady || !db || !effectiveUidForTasks || selectedYear === null || selectedMonth === null || selectedDay === null) { 
+        if (!isAuthReady || !db || !effectiveUidForTasks || selectedYear === null || selectedMonth === null || selectedDay === null) {
             setTasks([]);
             return;
         }
         setIsLoadingTasks(true); setGeneralError('');
-        const tasksCollectionPath = `artifacts/${appId}/users/${effectiveUidForTasks}/tasks`; 
-        const q = query( collection(db, tasksCollectionPath), where("year", "==", selectedYear), where("month", "==", MONTHS[selectedMonth]), where("day", "==", selectedDay) );
+        const tasksCollectionPath = `artifacts/${appId}/users/${effectiveUidForTasks}/tasks`;
+        const q = query(collection(db, tasksCollectionPath), where("year", "==", selectedYear), where("month", "==", MONTHS[selectedMonth]), where("day", "==", selectedDay));
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const fetchedTasks = [];
             querySnapshot.forEach((doc) => { fetchedTasks.push({ id: doc.id, ...doc.data() }); });
             fetchedTasks.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
             setTasks(fetchedTasks); setIsLoadingTasks(false);
-        }, (err) => { 
-            console.error("Error fetching tasks:", err); 
-            setGeneralError(`Failed to fetch tasks for ${viewMode === 'companionTasks' ? 'companion' : 'user'}: ${err.message}.`); 
-            setIsLoadingTasks(false); 
+        }, (err) => {
+            console.error("Error fetching tasks:", err);
+            setGeneralError(`Failed to fetch tasks for ${viewMode === 'companionTasks' ? 'companion' : 'user'}: ${err.message}.`);
+            setIsLoadingTasks(false);
         });
         return () => unsubscribe();
-    }, [isAuthReady, db, effectiveUidForTasks, selectedYear, selectedMonth, selectedDay, appId, viewMode]); 
+    }, [isAuthReady, db, effectiveUidForTasks, selectedYear, selectedMonth, selectedDay, appId, viewMode]);
 
     // --- Auth Event Handlers ---
-    const handleAuthAction = async (e) => { 
+    const handleAuthAction = async (e) => {
         e.preventDefault(); setAuthError('');
         if (!auth) { setAuthError("Firebase Auth not initialized."); return; }
         if (!email || !password) { setAuthError("Email and password cannot be empty."); return; }
         if (!isLoginView && !displayName.trim()) { setAuthError("Display name cannot be empty for registration."); return; }
         try {
-            if (isLoginView) { await signInWithEmailAndPassword(auth, email, password); } 
-            else { 
+            if (isLoginView) { await signInWithEmailAndPassword(auth, email, password); }
+            else {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                if (userCredential.user) { 
-                    await updateProfile(userCredential.user, { displayName: displayName.trim() }); 
+                if (userCredential.user) {
+                    await updateProfile(userCredential.user, { displayName: displayName.trim() });
                     const prefDocRef = doc(db, `artifacts/${appId}/users/${userCredential.user.uid}/userConfiguration`, "appPreferencesDoc");
-                    const defaultPrefs = { theme: 'dark', nickname: 'Task Manager Deluxe', companions: [] }; 
+                    const defaultPrefs = { theme: 'dark', nickname: 'Task Manager Deluxe', companions: [] };
                     await setDoc(prefDocRef, defaultPrefs);
                 }
             }
-        } catch (error) { 
-            console.error("Auth error:", error); 
+        } catch (error) {
+            console.error("Auth error:", error);
             if (error.code === 'auth/email-already-in-use') { setAuthError('This email address is already in use.'); }
             else if (error.code === 'auth/weak-password') { setAuthError('The password is too weak (at least 6 characters).'); }
             else if (error.code === 'auth/invalid-email') { setAuthError('The email address is not valid.'); }
@@ -507,37 +509,37 @@ function App() {
             else { setAuthError(error.message); }
         }
     };
-    const handleLogout = async () => { 
+    const handleLogout = async () => {
         setAuthError(''); if (!auth) { setAuthError("Firebase Auth not initialized."); return; }
-        try { await signOut(auth); setSelectedYear(null); setSelectedMonth(null); setSelectedDay(null); setTasks([]); } 
+        try { await signOut(auth); setSelectedYear(null); setSelectedMonth(null); setSelectedDay(null); setTasks([]); }
         catch (error) { console.error("Logout error:", error); setAuthError(error.message); }
     };
 
     // --- Year Management Functions ---
-    const handleAddYear = async () => { 
+    const handleAddYear = async () => {
         setYearManagementError(''); const yearToAdd = parseInt(newYearToAdd);
         if (isNaN(yearToAdd) || yearToAdd < 1900 || yearToAdd > 2200) { setYearManagementError("Please enter a valid year (e.g., 2025)."); return; }
         if (manageableYears.includes(yearToAdd)) { setYearManagementError(`Year ${yearToAdd} already exists.`); setNewYearToAdd(''); return; }
         if (!db || !user || !appId) { setYearManagementError("Cannot add year: user or database not available."); return; }
         const yearsDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/userConfiguration`, "manageableYearsDoc");
-        try { await setDoc(yearsDocRef, { list: arrayUnion(yearToAdd) }, { merge: true }); setNewYearToAdd(''); } 
+        try { await setDoc(yearsDocRef, { list: arrayUnion(yearToAdd) }, { merge: true }); setNewYearToAdd(''); }
         catch (error) { console.error("Error adding year:", error); setYearManagementError(`Failed to add year: ${error.message}`); }
     };
-    const handleDeleteYear = async (yearToDelete) => { 
+    const handleDeleteYear = async (yearToDelete) => {
         setYearManagementError('');
         if (manageableYears.length <= 1) { setYearManagementError("Cannot delete the last year. Add another year first."); return; }
         if (!db || !user || !appId) { setYearManagementError("Cannot delete year: user or database not available."); return; }
 
         if (window.customConfirm) {
             const confirmed = await window.customConfirm(`Are you sure you want to delete the year ${yearToDelete}? This action cannot be undone.`);
-            if (!confirmed) return; 
+            if (!confirmed) return;
         } else {
             console.warn("customConfirm not found, using native confirm as fallback.");
             if (!window.confirm(`Are you sure you want to delete the year ${yearToDelete}? (Fallback)`)) return;
         }
 
         const yearsDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/userConfiguration`, "manageableYearsDoc");
-        try { 
+        try {
             await setDoc(yearsDocRef, { list: arrayRemove(yearToDelete) }, { merge: true });
             if (selectedYear === yearToDelete) { setSelectedYear(null); setSelectedMonth(null); setSelectedDay(null); }
         } catch (error) { console.error("Error deleting year:", error); setYearManagementError(`Failed to delete year: ${error.message}`); }
@@ -547,40 +549,40 @@ function App() {
     const handleYearChange = (e) => { setSelectedYear(parseInt(e.target.value)); setSelectedMonth(null); setSelectedDay(null); setGeneralError(''); };
     const handleMonthChange = (e) => { setSelectedMonth(parseInt(e.target.value)); setSelectedDay(null); setGeneralError(''); };
     const handleDayChange = (e) => { setSelectedDay(parseInt(e.target.value)); setGeneralError(''); };
-    const handleAddTask = async (e) => { 
+    const handleAddTask = async (e) => {
         if (viewMode === 'companionTasks') {
             setGeneralError("Cannot add tasks for your companion (read-only view).");
             return;
         }
         e.preventDefault(); if (!newTaskText.trim()) { setGeneralError("Task description cannot be empty."); return; }
         if (!db || !user || selectedYear === null || selectedMonth === null || selectedDay === null) { setGeneralError("Please select a full date."); return; }
-        setGeneralError(''); const tasksCollectionPath = `artifacts/${appId}/users/${user.uid}/tasks`; 
+        setGeneralError(''); const tasksCollectionPath = `artifacts/${appId}/users/${user.uid}/tasks`;
         const newTaskData = { text: newTaskText.trim(), completed: false, year: selectedYear, month: MONTHS[selectedMonth], day: selectedDay, createdAt: serverTimestamp(), userId: user.uid };
-        try { const newDocRef = doc(collection(db, tasksCollectionPath)); await setDoc(newDocRef, newTaskData); setNewTaskText(''); } 
+        try { const newDocRef = doc(collection(db, tasksCollectionPath)); await setDoc(newDocRef, newTaskData); setNewTaskText(''); }
         catch (err) { console.error("Error adding task:", err); setGeneralError(`Failed to add task: ${err.message}.`); }
     };
-    const handleToggleTaskComplete = async (taskId, currentStatus) => { 
-        if (viewMode === 'companionTasks') return; 
+    const handleToggleTaskComplete = async (taskId, currentStatus) => {
+        if (viewMode === 'companionTasks') return;
         if (!db || !user) return; setGeneralError(''); const taskDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/tasks`, taskId);
-        try { await setDoc(taskDocRef, { completed: !currentStatus }, { merge: true }); } 
+        try { await setDoc(taskDocRef, { completed: !currentStatus }, { merge: true }); }
         catch (err) { console.error("Error updating task:", err); setGeneralError(`Failed to update task: ${err.message}.`); }
     };
-    const handleDeleteTask = async (taskId) => { 
-        if (viewMode === 'companionTasks') return; 
+    const handleDeleteTask = async (taskId) => {
+        if (viewMode === 'companionTasks') return;
         if (!db || !user) return; setGeneralError('');
         if (window.customConfirm) { const confirmed = await window.customConfirm("Are you sure you want to delete this task?"); if (!confirmed) return; }
-        else { if(!window.confirm("Are you sure you want to delete this task?")) return;}
+        else { if (!window.confirm("Are you sure you want to delete this task?")) return; }
         const taskDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/tasks`, taskId);
-        try { await deleteDoc(taskDocRef); } 
+        try { await deleteDoc(taskDocRef); }
         catch (err) { console.error("Error deleting task:", err); setGeneralError(`Failed to delete task: ${err.message}.`); }
     };
-    
+
     // --- Custom Confirmation Modal ---
-    useEffect(() => { 
+    useEffect(() => {
         window.customConfirm = async (message) => {
             const existingModal = document.getElementById('custom-confirm-modal'); if (existingModal) existingModal.remove();
-            const modal = document.createElement('div'); modal.id = 'custom-confirm-modal'; modal.className = 'confirm-modal-overlay'; 
-            const content = document.createElement('div'); content.className = 'confirm-modal-content'; 
+            const modal = document.createElement('div'); modal.id = 'custom-confirm-modal'; modal.className = 'confirm-modal-overlay';
+            const content = document.createElement('div'); content.className = 'confirm-modal-content';
             content.innerHTML = `<p class="confirm-modal-message">${message}</p><div class="confirm-modal-buttons"><button id="confirmOk" class="button button-danger">OK</button><button id="confirmCancel" class="button button-secondary">Cancel</button></div>`;
             modal.appendChild(content); document.body.appendChild(modal);
             return new Promise((resolve) => {
@@ -588,7 +590,7 @@ function App() {
                 document.getElementById('confirmCancel').onclick = () => { document.body.removeChild(modal); resolve(false); };
             });
         };
-        return () => { const modal = document.getElementById('custom-confirm-modal'); if (modal) modal.remove(); delete window.customConfirm;  };
+        return () => { const modal = document.getElementById('custom-confirm-modal'); if (modal) modal.remove(); delete window.customConfirm; };
     }, []);
 
     // --- Recent Task Click Handler ---
@@ -597,12 +599,12 @@ function App() {
             const monthIndex = MONTHS.indexOf(task.month);
             if (monthIndex > -1) {
                 setSelectedYear(task.year);
-                setSelectedMonth(monthIndex); 
+                setSelectedMonth(monthIndex);
                 const daysForNewMonth = getDaysInMonth(task.year, monthIndex);
                 if (daysForNewMonth.includes(task.day)) {
                     setSelectedDay(task.day);
                 } else {
-                    setSelectedDay(null); 
+                    setSelectedDay(null);
                     console.warn(`Day ${task.day} not valid for ${task.month} ${task.year}. Day reset.`);
                 }
             } else {
@@ -621,7 +623,7 @@ function App() {
         const prefDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/userConfiguration`, "appPreferencesDoc");
         try {
             await setDoc(prefDocRef, { theme: newTheme }, { merge: true });
-            setSettingsMessage("Theme saved!"); 
+            setSettingsMessage("Theme saved!");
             setTimeout(() => setSettingsMessage(''), 2000);
         } catch (error) {
             console.error("Error saving theme:", error);
@@ -642,7 +644,7 @@ function App() {
         const prefDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/userConfiguration`, "appPreferencesDoc");
         try {
             await setDoc(prefDocRef, { nickname: trimmedNickname }, { merge: true });
-            setSettingsMessage("Nickname saved!"); 
+            setSettingsMessage("Nickname saved!");
             setTimeout(() => setSettingsMessage(''), 2000);
         } catch (error) {
             console.error("Error saving nickname:", error);
@@ -660,12 +662,12 @@ function App() {
         if (!trimmedCompanionNickname) {
             setSettingsMessage("Companion Nickname cannot be empty."); return;
         }
-        if (user && trimmedCompanionUid === user.uid) { 
+        if (user && trimmedCompanionUid === user.uid) {
             setSettingsMessage("You cannot add yourself as a companion."); return;
         }
-        if (companions.find(c => c.uid === trimmedCompanionUid)) { 
+        if (companions.find(c => c.uid === trimmedCompanionUid)) {
             setSettingsMessage("This user is already a companion.");
-            setNewCompanionUidInput(''); 
+            setNewCompanionUidInput('');
             setNewCompanionNicknameInput('');
             return;
         }
@@ -676,7 +678,7 @@ function App() {
         const newCompanion = { uid: trimmedCompanionUid, nickname: trimmedCompanionNickname };
         try {
             await setDoc(prefDocRef, { companions: arrayUnion(newCompanion) }, { merge: true });
-            setNewCompanionUidInput(''); 
+            setNewCompanionUidInput('');
             setNewCompanionNicknameInput('');
             setSettingsMessage("Companion added successfully!");
             setTimeout(() => setSettingsMessage(''), 2000);
@@ -699,8 +701,8 @@ function App() {
         try {
             await setDoc(prefDocRef, { companions: arrayRemove(companionToRemove) }, { merge: true });
             if (selectedCompanionForViewing && selectedCompanionForViewing.uid === companionUidToRemove) {
-                setSelectedCompanionForViewing(null); 
-                setViewMode('myTasks'); 
+                setSelectedCompanionForViewing(null);
+                setViewMode('myTasks');
             }
             setSettingsMessage("Companion removed.");
             setTimeout(() => setSettingsMessage(''), 2000);
@@ -716,21 +718,21 @@ function App() {
                 setViewMode('companionTasks');
                 if (!selectedCompanionForViewing && companions[0]) {
                     setSelectedCompanionForViewing(companions[0]);
-                } else if (selectedCompanionForViewing && !companions.find(c => c.uid === selectedCompanionForViewing.uid)){
+                } else if (selectedCompanionForViewing && !companions.find(c => c.uid === selectedCompanionForViewing.uid)) {
                     setSelectedCompanionForViewing(companions[0] || null);
                 }
             } else {
                 setGeneralError("You don't have any companions set up to view their tasks.");
-                 setTimeout(() => setGeneralError(''), 3000);
+                setTimeout(() => setGeneralError(''), 3000);
             }
-        } else { 
+        } else {
             setViewMode('myTasks');
-            setSelectedCompanionForViewing(null); 
+            setSelectedCompanionForViewing(null);
         }
-        setSelectedYear(null); setSelectedMonth(null); setSelectedDay(null); setTasks([]); 
+        setSelectedYear(null); setSelectedMonth(null); setSelectedDay(null); setTasks([]);
     };
 
-    const selectCompanionToView = (companionObject) => { 
+    const selectCompanionToView = (companionObject) => {
         setSelectedCompanionForViewing(companionObject);
         setSelectedYear(null); setSelectedMonth(null); setSelectedDay(null); setTasks([]);
     };
@@ -738,9 +740,9 @@ function App() {
 
     // --- Render Logic ---
     if (!isAuthReady && !generalError) { return (<div className="loading-screen"><div className="loading-text">Initializing...</div><div className="loading-spinner"></div></div>); }
-    
+
     // Auth View
-    if (!user) { 
+    if (!user) {
         return (
             <div className="auth-screen">
                 <div className="auth-container">
@@ -751,16 +753,16 @@ function App() {
                         {!isLoginView && (
                             <div className="form-group">
                                 <label htmlFor="displayName">Display Name</label>
-                                <input type="text" id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required={!isLoginView} placeholder="Your Name" className="form-group-input"/>
+                                <input type="text" id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required={!isLoginView} placeholder="Your Name" className="form-group-input" />
                             </div>
                         )}
                         <div className="form-group">
                             <label htmlFor="email">Email Address</label>
-                            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@example.com" className="form-group-input"/>
+                            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@example.com" className="form-group-input" />
                         </div>
                         <div className="form-group">
                             <label htmlFor="password">Password</label>
-                            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" className="form-group-input"/>
+                            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" className="form-group-input" />
                         </div>
                         <button type="submit" className="button button-primary button-full-width">
                             {isLoginView ? 'Login' : 'Register'}
@@ -772,47 +774,47 @@ function App() {
                 </div>
                 <footer className="app-footer auth-footer"><p>&copy; {CURRENT_YEAR} {appNickname}</p></footer>
             </div>
-        ); 
+        );
     }
-    
+
     // Main App View
     return (
-        <div className="app-layout"> 
-            <SettingsModal 
+        <div className="app-layout">
+            <SettingsModal
                 isOpen={isSettingsModalOpen}
-                onClose={() => {setIsSettingsModalOpen(false); setSettingsMessage('');}}
+                onClose={() => { setIsSettingsModalOpen(false); setSettingsMessage(''); }}
                 appTheme={appTheme}
                 onToggleTheme={handleToggleTheme}
                 currentAppNickname={appNickname}
                 newNicknameInput={newNicknameInput}
-                onNewNicknameInputChange={setNewNicknameInput} 
+                onNewNicknameInputChange={setNewNicknameInput}
                 onSaveNickname={handleSaveNickname}
                 manageableYears={manageableYears}
                 isLoadingYears={isLoadingYears}
                 yearManagementError={yearManagementError}
                 newYearToAdd={newYearToAdd}
-                onNewYearToAddChange={setNewYearToAdd} 
+                onNewYearToAddChange={setNewYearToAdd}
                 onAddYear={handleAddYear}
                 onDeleteYear={handleDeleteYear}
-                companions={companions} 
+                companions={companions}
                 newCompanionUidInput={newCompanionUidInput}
-                onNewCompanionUidInputChange={setNewCompanionUidInput} 
-                newCompanionNicknameInput={newCompanionNicknameInput} 
-                onNewCompanionNicknameInputChange={setNewCompanionNicknameInput} 
-                onAddCompanion={handleAddCompanion} 
+                onNewCompanionUidInputChange={setNewCompanionUidInput}
+                newCompanionNicknameInput={newCompanionNicknameInput}
+                onNewCompanionNicknameInputChange={setNewCompanionNicknameInput}
+                onAddCompanion={handleAddCompanion}
                 onRemoveCompanion={handleRemoveCompanion}
                 settingsMessage={settingsMessage}
-                currentUserUid={user?.uid} 
-            /> 
+                currentUserUid={user?.uid}
+            />
             <aside className="sidebar">
                 <h2 className="sidebar-title">
                     {viewMode === 'companionTasks' && selectedCompanionForViewing ? `${selectedCompanionForViewing.nickname}'s Tasks` : appNickname}
                 </h2>
                 <div className="view-mode-toggle">
-                    <button 
-                        onClick={toggleViewMode} 
+                    <button
+                        onClick={toggleViewMode}
                         className={`button button-secondary ${viewMode === 'myTasks' ? 'active' : ''}`}
-                        disabled={!companions || companions.length === 0} 
+                        disabled={!companions || companions.length === 0}
                     >
                         {viewMode === 'myTasks' ? "View Companion's Tasks" : "View My Tasks"}
                     </button>
@@ -822,10 +824,10 @@ function App() {
                     <div className="companion-selection-sidebar">
                         <h3 className="sidebar-subtitle">Select Companion:</h3>
                         <ul className="companion-list-sidebar">
-                            {companions.map(comp => ( 
-                                <li 
-                                    key={comp.uid} 
-                                    onClick={() => selectCompanionToView(comp)} 
+                            {companions.map(comp => (
+                                <li
+                                    key={comp.uid}
+                                    onClick={() => selectCompanionToView(comp)}
                                     className={`companion-list-item ${selectedCompanionForViewing?.uid === comp.uid ? 'active' : ''}`}
                                 >
                                     {comp.nickname}
@@ -834,8 +836,8 @@ function App() {
                         </ul>
                     </div>
                 )}
-                
-                { (viewMode === 'myTasks' || (viewMode === 'companionTasks' && selectedCompanionForViewing)) && (
+
+                {(viewMode === 'myTasks' || (viewMode === 'companionTasks' && selectedCompanionForViewing)) && (
                     <>
                         <h3 className="sidebar-subtitle">Recent Tasks
                             {viewMode === 'companionTasks' && selectedCompanionForViewing && ` (for ${selectedCompanionForViewing.nickname})`}
@@ -862,7 +864,7 @@ function App() {
             </aside>
 
             <main className="main-content-area">
-                <div className="main-container"> 
+                <div className="main-container">
                     <header className="app-header">
                         <div>
                             <h1 className="main-title">
@@ -872,7 +874,7 @@ function App() {
                             {user && <p className="user-uid-display">My User ID: {user.uid}</p>}
                             <p className="created-by-display">Created by MOHD SHAHRUKH</p>
                         </div>
-                        <div className="header-actions"> 
+                        <div className="header-actions">
                             <button onClick={() => setIsSettingsModalOpen(true)} className="button-icon settings-button" title="App Settings">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="icon" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
@@ -886,8 +888,8 @@ function App() {
                     {generalError && <div className="error-message main-error">{generalError}</div>}
 
                     <section className="date-selection-section card">
-                        <h2 className="section-title">Select Date</h2> 
-                        <div className="date-selectors-grid"> 
+                        <h2 className="section-title">Select Date</h2>
+                        <div className="date-selectors-grid">
                             <div className="form-group">
                                 <label htmlFor="year-select">Year</label>
                                 <select id="year-select" value={selectedYear ?? ''} onChange={handleYearChange} disabled={isLoadingYears || manageableYears.length === 0}>
@@ -919,18 +921,18 @@ function App() {
                                 {viewMode === 'companionTasks' && selectedCompanionForViewing && ` (${selectedCompanionForViewing.nickname}'s Tasks - Read Only)`}
                             </h2>
                             <form onSubmit={handleAddTask} className="add-task-form">
-                                <input 
-                                    type="text" 
-                                    value={newTaskText} 
-                                    onChange={(e) => setNewTaskText(e.target.value)} 
-                                    placeholder="Enter new task..." 
+                                <input
+                                    type="text"
+                                    value={newTaskText}
+                                    onChange={(e) => setNewTaskText(e.target.value)}
+                                    placeholder="Enter new task..."
                                     className="task-input-field form-group-input"
-                                    disabled={viewMode === 'companionTasks'} 
+                                    disabled={viewMode === 'companionTasks'}
                                 />
-                                <button 
-                                    type="submit" 
+                                <button
+                                    type="submit"
                                     className="button button-primary add-task-button"
-                                    disabled={viewMode === 'companionTasks'} 
+                                    disabled={viewMode === 'companionTasks'}
                                 >
                                     Add Task
                                 </button>
@@ -942,21 +944,21 @@ function App() {
                                     {tasks.map(task => (
                                         <li key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
                                             <div className="task-item-content">
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={task.completed} 
-                                                    onChange={() => handleToggleTaskComplete(task.id, task.completed)} 
+                                                <input
+                                                    type="checkbox"
+                                                    checked={task.completed}
+                                                    onChange={() => handleToggleTaskComplete(task.id, task.completed)}
                                                     className="task-checkbox"
-                                                    disabled={viewMode === 'companionTasks'} 
+                                                    disabled={viewMode === 'companionTasks'}
                                                 />
                                                 <span className="task-text">{task.text}</span>
                                             </div>
-                                            <button 
-                                                onClick={() => handleDeleteTask(task.id)} 
-                                                className="button-icon delete-task-button" 
+                                            <button
+                                                onClick={() => handleDeleteTask(task.id)}
+                                                className="button-icon delete-task-button"
                                                 title="Delete task"
-                                                disabled={viewMode === 'companionTasks'} 
-                                                style={{ visibility: viewMode === 'companionTasks' ? 'hidden' : 'visible' }} 
+                                                disabled={viewMode === 'companionTasks'}
+                                                style={{ visibility: viewMode === 'companionTasks' ? 'hidden' : 'visible' }}
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="icon" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
                                             </button>
@@ -972,15 +974,21 @@ function App() {
                     {selectedYear !== null && selectedMonth === null && (
                         <p className="info-message">Please select a month.</p>
                     )}
-                    {selectedYear === null && manageableYears.length > 0 && ( 
+                    {selectedYear === null && manageableYears.length > 0 && (
                         <p className="info-message">Please select a year to begin.</p>
                     )}
-                </div> 
+                </div>
+                <button onClick={openDocumentation} className="sticky-help-button button button-secondary" title="Open User Guide">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="icon" viewBox="0 0 20 20" fill="currentColor" style={{ width: '1.2em', height: '1.2em', marginRight: '0.3em' }}>
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    Help
+                </button>
                 <footer className="app-footer main-app-footer">
-                    <p>&copy; {CURRENT_YEAR} {appNickname}</p> 
+                    <p>&copy; {CURRENT_YEAR} {appNickname}</p>
                 </footer>
-            </main> 
-        </div> 
+            </main>
+        </div>
     );
 }
 
