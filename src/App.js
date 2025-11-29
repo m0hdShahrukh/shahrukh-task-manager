@@ -747,6 +747,7 @@ function App() {
             <div className="auth-screen">
                 <div className="auth-container">
                     <h1 className="auth-title">{isLoginView ? 'Login to Task Manager' : 'Register for Task Manager'}</h1>
+                    <p className="auth-subtitle">{isLoginView ? 'For Testing Use, Email:- demo@demo.com & Pass:- demo123' : ''}</p>
                     {authError && <div className="error-message auth-error">{authError}</div>}
                     {generalError && <div className="error-message auth-error">{generalError}</div>}
                     <form onSubmit={handleAuthAction} className="auth-form">
